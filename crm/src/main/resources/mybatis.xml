@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+<!--    这是日志配置文件-->
+    <settings>
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+    </settings>
+<!--    这是用来定义别名的，可以给单个实体类定义别名，也可以给一个包下的所有类定义别名，这是别名为类的首字母小写-->
+    <typeAliases>
+        <package name="com.xjx.web.domain"/>
+        <package name="com.xjx.settings.domain"/>
+        <package name="com.xjx.workbench.domain"/>
+    </typeAliases>
+<!--    这是用来配置需要加载的dao映射文件的路径的，SqlSession会读取mapper文件中的sql配置-->
+<!--    注意这里mapper文件名要和对应的dao接口名相同且在同一个包下-->
+    <!--<mappers>
+        <package name="com.xjx.settings.dao"/>
+    </mappers>-->
+</configuration>

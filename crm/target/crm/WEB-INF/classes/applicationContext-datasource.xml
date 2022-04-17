@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+      http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+      http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+    <!-- 配置数据源 -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/ssmcrm?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8"/>
+    </bean>
+<!--    因为这是ssm项目，所以写spring和mybatis整合后的配置文件，这里sqlsession对象就不用自己创建了，而是使用spring容器来创建-->
+    <!-- 配置SqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 必须注入属性dataSource -->
+<!--        本来这个数据源是写在mybatis中，然后手动把配置文件赋给sqlsessionfactorybuilder对象创建sqlsessionfactory-->
+<!--        但是sqlsessionfactory对象已经交给spring创建了，所以需要给其配置数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 如果mybatis没有特殊的配置(比如别名等)，configLocation可以省去 ;否则，不能省略-->
+<!--        这里相当于手动创建sqlsessionfactorybuilder对象传入的mybatis配置文件，因为使用spring了所以把mybatis配置文件交给spring-->
+        <property name="configLocation" value="classpath:mybatis.xml"/>
+    </bean>
+
+    <!-- mapper注解扫描器配置,扫描@MapperScan注解,自动生成代码对象 -->
+    <bean id="mapperScanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.xjx.settings.dao,
+                                            com.xjx.workbench.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+
+    <!-- 配置事务管理器 ：这个本来是写在mybatis配置文件中的，但是整合spring了所以写在spring中-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!-- 配置事务增强器，指定将配置好的事务通知，织入给哪些方法。 -->
+    <aop:config>
+<!--        通知事务的切入点-->
+        <aop:pointcut expression="execution(* com..service.*.*(..))" id="allMethodPointcut"/>
+<!--        通知和切入点的组合-->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="allMethodPointcut"/>
+    </aop:config>
+<!--    配置事务通知：为事务通知设置相关属性。用于指定要将事务以什么方式织入给哪些方法。-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="add*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="save*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="edit*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="update*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="delete*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="do*" propagation="REQUIRED" rollback-for="Exception"/>
+            <tx:method name="*" propagation="REQUIRED" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+
+</beans>
