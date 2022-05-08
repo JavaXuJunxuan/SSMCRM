@@ -204,7 +204,7 @@
 
   <select id="selectActivityByConditionForPage" parameterType="map" resultMap="BaseResultMap">
     select a.id,a.name,u1.name as owner,a.start_date,a.end_date,a.cost,a.description,a.create_time,
-           a.create_by,a.edit_time,a.edit_by
+           u2.name as create_by,a.edit_time,u3.name as edit_by
     from tbl_activity a
     join tbl_user u1 on a.owner = u1.id
     join tbl_user u2 on a.create_by = u2.id
@@ -214,7 +214,7 @@
         and a.name like '%' #{name} '%'
       </if>
       <if test="owner != null and owner != '' ">
-        and u1.owner like '%' #{owner} '%'
+        and u1.name like '%' #{owner} '%'
       </if>
       <if test="startDate != null and startDate != '' ">
         and a.start_date &lt;= #{startDate}
@@ -229,19 +229,20 @@
 
   <select id="selectCountByConditionForPage" parameterType="map" resultType="int">
     select count(*)
-    from tbl_activity
+    from tbl_activity a
+    join tbl_user u1 on a.owner = u1.id
     <where>
-      <if test="name != null and name != '' ">
-        and name like '%' #{name} '%'
+      <if test="name!=null and name!=''">
+        and a.name like '%' #{name} '%'
       </if>
-      <if test="owner != null and owner != '' ">
-        and owner like '%' #{owner} '%'
+      <if test="owner!=null and owner!=''">
+        and u1.name like '%' #{owner} '%'
       </if>
-      <if test="startDate != null and startDate != '' ">
-        and start_date &lt;= #{startDate}
+      <if test="startDate!=null and startDate!=''">
+        and a.start_date &gt;= #{startDate}
       </if>
-      <if test="endDate != null and endDate != '' ">
-        and end_date &gt;= #{endDate}
+      <if test="endDate!=null and endDate!=''">
+        and a.end_date &lt;= #{endDate}
       </if>
     </where>
   </select>
@@ -297,5 +298,56 @@
     #{id}
   </foreach>
     order by a.create_time desc
+  </select>
+
+  <select id="selectActivityForDetailById" parameterType="string" resultMap="BaseResultMap">
+    select a.id,u1.name as owner,a.name,a.start_date,a.end_date,a.cost,a.description,a.create_time,u2.name as create_by,
+           a.edit_time,u3.name as edit_by
+    from tbl_activity a
+    join tbl_user u1 on a.owner = u1.id
+    join tbl_user u2 on a.create_by = u2.id
+    left join tbl_user u3 on a.edit_by = u3.id
+    where a.id=#{id}
+  </select>
+
+  <select id="selectActivityForDetailByClueId" parameterType="string" resultMap="BaseResultMap">
+    select a.id,a.name,a.start_date,a.end_date,u.name as owner
+    from tbl_activity a
+    join tbl_user u on a.owner = u.id
+    join tbl_clue_activity_relation car on a.id = car.activity_id
+    where car.clue_id = #{clueId}
+  </select>
+
+
+  <select id="selectActivityForDetailByNameClueId" parameterType="map" resultMap="BaseResultMap">
+    select a.id,a.name,a.start_date,a.end_date,u.name as owner
+    from tbl_activity a
+    join tbl_user u on a.owner=u.id
+    where a.name like '%' #{activityName} '%' and a.id not in (
+        select activity_id
+        from tbl_clue_activity_relation
+        where clue_id = #{clueId}
+        )
+  </select>
+
+  <select id="selectActivityForDetailByIds" parameterType="string" resultMap="BaseResultMap">
+    select a.id,a.name,a.start_date,a.end_date,u.name as owner
+    from tbl_activity a
+    join tbl_user u on a.owner=u.id
+    where a.id in
+    <foreach collection="array" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </select>
+
+  <select id="selectActivityForConvertByNameClueId" parameterType="map" resultMap="BaseResultMap">
+    select a.id,a.name,a.start_date,a.end_date,u.name as owner
+    from tbl_activity a
+    join tbl_user u on a.owner = u.id
+    where a.name like '%' #{activityName} '%' and a.id in (
+       select activity_id
+       from tbl_clue_activity_relation
+       where clue_id=#{clueId}
+      )
   </select>
 </mapper>

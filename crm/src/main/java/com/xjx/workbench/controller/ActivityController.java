@@ -1,6 +1,5 @@
 package com.xjx.workbench.controller;
 
-import com.sun.deploy.net.HttpResponse;
 import com.xjx.commons.constants.Constants;
 import com.xjx.commons.domain.ReturnObject;
 import com.xjx.commons.utils.DateUtils;
@@ -9,6 +8,8 @@ import com.xjx.commons.utils.UUIDUtils;
 import com.xjx.settings.domain.User;
 import com.xjx.settings.service.UserService;
 import com.xjx.workbench.domain.Activity;
+import com.xjx.workbench.domain.ActivityRemark;
+import com.xjx.workbench.service.ActivityRemarkService;
 import com.xjx.workbench.service.ActivityService;
 import javafx.scene.control.Alert;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -38,6 +39,8 @@ public class ActivityController {
     private UserService userService;
     @Autowired
     private ActivityService activityService;
+    @Autowired
+    private ActivityRemarkService activityRemarkService;
 
     @RequestMapping("/workbench/activity/index.do")
     public String index(HttpServletRequest httpServletRequest) {
@@ -90,7 +93,7 @@ public class ActivityController {
 
     @RequestMapping("/workbench/activity/deleteActivityByIds.do")
     @ResponseBody
-    public Object queryActivityByConditionForPage(String[] id) {
+    public Object deleteActivityByIds(String[] id) {
         ReturnObject returnObject = new ReturnObject();
         try {
             int count = activityService.deleteActivityByIds(id);
@@ -337,5 +340,14 @@ public class ActivityController {
             returnObject.setMessage("系统忙，请稍后重试....");
         }
         return returnObject;
+    }
+
+    @RequestMapping("/workbench/activity/detailActivity.do")
+    public String detailActivity(String id,HttpServletRequest request){
+        Activity activity = activityService.selectActivityForDetailById(id);
+        List<ActivityRemark> remarkList = activityRemarkService.queryActivityRemarkForDetailByActivityId(id);
+        request.setAttribute("activity",activity);
+        request.setAttribute("remarkList",remarkList);
+        return "workbench/activity/detail";
     }
 }

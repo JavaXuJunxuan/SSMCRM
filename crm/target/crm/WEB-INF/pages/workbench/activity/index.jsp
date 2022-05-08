@@ -7,7 +7,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 <html>
 <head>
 	<base href="<%=basePath%>">
-<meta charset="UTF-8">
+	<meta charset="UTF-8">
 
 	<link href="jquery/bootstrap_3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
 	<link rel="stylesheet" type="text/css" href="jquery/bootstrap-datetimepicker-master/css/bootstrap-datetimepicker.min.css">
@@ -32,10 +32,8 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 			todayBtn:true,//设置是否显示"今天"按钮,默认是false
 			clearBtn:true//设置是否显示"清空"按钮，默认是false
 		});
-
 		//打开创建市场活动的模态窗口
 		$("#createActivityBtn").click(function () {
-			$("#createActivityForm")[0].reset;
 			$("#createActivityModal").modal("show");
 		})
 		//点击模态窗口的保存按钮进行市场活动信息的保存操作
@@ -62,7 +60,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 				}
 			}
 			var regExp=/^(([1-9]\d*)|0)$/;
-			if(!regExp.test(cost)){
+			if(!regExp.test(cost) && cost >= 0){
 				alert("成本只能为非负整数");
 				return;
 			}
@@ -82,6 +80,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 					if (data.code == "1"){
 						$("#createActivityModal").modal("hide");
 						queryActivityByConditionForPage(1,$("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'))
+						$("#createActivityForm")[0].reset();
 					}else {
 						alert(data.message);
 						$("#createActivityModal").modal("show");
@@ -128,7 +127,11 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 					type:"post",
 					data:ids,
 					success:function (data){
-						queryActivityByConditionForPage(1,$("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'));
+						if (data.code == "1"){
+							queryActivityByConditionForPage(1,$("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'));
+						}else {
+							alert(data.message);
+						}
 					}
 				})
 			}
@@ -232,7 +235,6 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 			ids = ids.substring(0,ids.length - 1);
 			window.location.href = "workbench/activity/exportSelectedActivities.do?"+ids;
 		})
-
 		//导入市场活动信息
 		$("#importActivityBtn").click(function (){
 			//这里得到的是上传文件的文件名
@@ -293,12 +295,11 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 			},
 			type: "post",
 			success: function (data){
-				$("#totalRowsB").text(data.totalRows);
 				var html = "";
 				$.each(data.activityList,function (index,obj){
 					html += "<tr class=\"active\">";
 					html += "<td><input type=\"checkbox\" value=\""+obj.id+"\"/></td>";
-					html += "<td><a style=\"text-decoration: none; cursor: pointer;\" onclick=\"window.location.href='detail.html';\">"+obj.name+"</a></td>";
+					html += "<td><a style=\"text-decoration: none; cursor: pointer;\" onclick=\"window.location.href='workbench/activity/detailActivity.do?id="+obj.id+"'\">"+obj.name+"</a></td>";
 					html += "<td>"+obj.owner+"</td>";
 					html += "<td>"+obj.startDate+"</td>";
 					html += "<td>"+obj.endDate+"</td>";
@@ -307,9 +308,8 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 				$("#tBody").html(html);
 				//取消"全选"按钮
 				$("#checkAll").prop("checked",false);
-
 				//计算总页数
-				var totalPages=1;
+				var totalPages = 1;
 				if(data.totalRows % pageSize == 0){
 					totalPages = data.totalRows / pageSize;
 				}else{
@@ -318,17 +318,13 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 
 				$("#demo_pag1").bs_pagination({
 					currentPage:pageNo,//当前页号,相当于pageNo
-
 					rowsPerPage:pageSize,//每页显示条数,相当于pageSize
 					totalRows:data.totalRows,//总条数
 					totalPages:totalPages,//总页数,必填参数.
-
 					visiblePageLinks:5,//最多可以显示的卡片数
-
 					showGoToPage:true,//是否显示"跳转到"部分,默认true--显示
 					showRowsPerPage:true,//是否显示"每页显示条数"部分。默认true--显示
 					showRowsInfo:true,//是否显示记录的信息，默认true--显示
-
 					//用户每次切换页号，都自动触发本函数;
 					//每次返回切换页号之后的pageNo和pageSize
 					onChangePage: function(event,pageObj) { // returns page_num and rows_per_page after a link has clicked
@@ -583,14 +579,14 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 					<tbody id="tBody">
 						<%--<tr class="active">
 							<td><input type="checkbox" /></td>
-							<td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href='detail.html';">发传单</a></td>
+							<td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href='detail.jsp';">发传单</a></td>
                             <td>zhangsan</td>
 							<td>2020-10-10</td>
 							<td>2020-10-20</td>
 						</tr>
                         <tr class="active">
                             <td><input type="checkbox" /></td>
-                            <td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href='detail.html';">发传单</a></td>
+                            <td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href='detail.jsp';">发传单</a></td>
                             <td>zhangsan</td>
                             <td>2020-10-10</td>
                             <td>2020-10-20</td>--%>
@@ -599,7 +595,6 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 				</table>
 				<div id="demo_pag1"></div>
 			</div>
-
 			<%--<div style="height: 50px; position: relative;top: 30px;">
 				<div>
 					<button type="button" class="btn btn-default" style="cursor: default;">共<b id="totalRowsB">50</b>条记录</button>
@@ -634,7 +629,6 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 					</nav>
 				</div>
 			</div>--%>
-
 		</div>
 
 	</div>

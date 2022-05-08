@@ -1,5 +1,7 @@
 package com.xjx.commons.domain;
 
+import com.xjx.workbench.domain.Contacts;
+
 public class ReturnObject {
     private Integer code;
     private String message;
